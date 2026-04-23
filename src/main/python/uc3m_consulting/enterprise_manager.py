@@ -17,28 +17,21 @@ class EnterpriseManager:
         pass
 
     @staticmethod
-    def validate_cif(cif: str):
-        """validates a cif number """
-        if not isinstance(cif, str):
-            raise EnterpriseManagementException("CIF code must be a string")
-        format = re.compile(r"^[ABCDEFGHJKNPQRSUVW]\d{7}[0-9A-J]$")
-        if not format.fullmatch(cif):
-            raise EnterpriseManagementException("Invalid CIF format")
-
-        first_letter = cif[0]
-        numbers = cif[1:8]
-        control = cif[8]
+    def calculate_control_digit(numbers: str):
+        """ Implementation for calculating control digit"""
 
         sum_odd = 0
         sum_even = 0
 
-        for index in range(len(numbers)):
+        length_numbers = len(numbers)
+
+        for index in range(length_numbers):
             if index % 2 == 0:
-                x = int(numbers[index]) * 2
-                if x > 9:
-                    sum_odd = sum_odd + (x // 10) + (x % 10)
+                doubled_digit = int(numbers[index]) * 2
+                if doubled_digit > 9:
+                    sum_odd = sum_odd + (doubled_digit // 10) + (doubled_digit % 10)
                 else:
-                    sum_odd = sum_odd + x
+                    sum_odd = sum_odd + doubled_digit
             else:
                 sum_even = sum_even + int(numbers[index])
 
@@ -48,6 +41,23 @@ class EnterpriseManager:
 
         if control_digit == 10:
             control_digit = 0
+
+        return control_digit
+
+    @staticmethod
+    def validate_cif(cif: str):
+        """validates a cif number """
+        if not isinstance(cif, str):
+            raise EnterpriseManagementException("CIF code must be a string")
+        cif_pattern = re.compile(r"^[ABCDEFGHJKNPQRSUVW]\d{7}[0-9A-J]$")
+        if not cif_pattern.fullmatch(cif):
+            raise EnterpriseManagementException("Invalid CIF format")
+
+        first_letter = cif[0]
+        numbers = cif[1:8]
+        control = cif[8]
+
+        control_digit = EnterpriseManager.calculate_control_digit(numbers)
 
         letters = "JABCDEFGHI"
 
@@ -60,6 +70,7 @@ class EnterpriseManager:
         else:
             raise EnterpriseManagementException("CIF type not supported")
         return True
+
 
     def validate_starting_date(self, date_str: str):
         """validates the  date format  using regex"""
