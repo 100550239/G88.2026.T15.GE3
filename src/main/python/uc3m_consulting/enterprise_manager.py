@@ -220,11 +220,7 @@ class EnterpriseManager:
             raise EnterpriseManagementException("Invalid date format") from ex
 
         # open documents
-        try:
-            with open(TEST_DOCUMENTS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
-                documents_list = json.load(file)
-        except FileNotFoundError as ex:
-            raise EnterpriseManagementException("Wrong file  or file path") from ex
+        documents_list = self.read_json_file(TEST_DOCUMENTS_STORE_FILE)
 
         documents_found = 0
 
@@ -255,22 +251,10 @@ class EnterpriseManager:
         report_entry = {"Querydate": date_str,
                         "ReportDate": current_timestamp,
                         "Numfiles": documents_found
-                        }
+                            }
 
-        try:
-            with open(TEST_NUMDOCS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
-                reports_list = json.load(file)
-        except FileNotFoundError:
-            reports_list = []
-        except json.JSONDecodeError as ex:
-            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
-
+        reports_list = self.read_json_file(TEST_NUMDOCS_STORE_FILE)
         reports_list.append(report_entry)
-
-        try:
-            with open(TEST_NUMDOCS_STORE_FILE, "w", encoding="utf-8", newline="") as file:
-                json.dump(reports_list, file, indent=2)
-        except FileNotFoundError as ex:
-            raise EnterpriseManagementException("Wrong file  or file path") from ex
+        self.write_json_file(TEST_NUMDOCS_STORE_FILE, reports_list)
 
         return documents_found
