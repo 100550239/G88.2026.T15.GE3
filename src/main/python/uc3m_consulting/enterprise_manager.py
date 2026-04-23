@@ -67,7 +67,7 @@ class EnterpriseManager:
         return control_digit
 
     @staticmethod
-    def validate_cif(cif: str):
+    def validate_company_cif(cif: str):
         """validates a cif number """
         if not isinstance(cif, str):
             raise EnterpriseManagementException("CIF code must be a string")
@@ -92,6 +92,26 @@ class EnterpriseManager:
         else:
             raise EnterpriseManagementException("CIF type not supported")
         return True
+    
+
+    @staticmethod
+    def validate_project_acronym(project_acronym: str):
+        """validates the project acronym using regex"""
+
+        acronym_pattern = re.compile(r"^[a-zA-Z0-9]{5,10}")
+        is_valid_acronym = acronym_pattern.fullmatch(project_acronym)
+
+        if not is_valid_acronym:
+            raise EnterpriseManagementException("Invalid acronym")
+    
+    @staticmethod
+    def validate_project_description(project_description: str):
+        """validates the project description using regex"""
+        
+        description_pattern = re.compile(r"^.{10,30}$")
+        is_valid_description = description_pattern.fullmatch(project_description)
+        if not is_valid_description:
+            raise EnterpriseManagementException("Invalid description format")
 
 
     def validate_starting_date(self, date_str: str):
@@ -122,19 +142,11 @@ class EnterpriseManager:
                          date: str,
                          budget: str):
         """Registers a new project"""
-        self.validate_cif(company_cif)
+        self.validate_company_cif(company_cif)
 
-        # Validate acronym
-        acronym_pattern = re.compile(r"^[a-zA-Z0-9]{5,10}")
-        is_valid_acronym = acronym_pattern.fullmatch(project_acronym)
-        if not is_valid_acronym:
-            raise EnterpriseManagementException("Invalid acronym")
+        self.validate_project_acronym(project_acronym)
 
-        # Validate description
-        description_pattern = re.compile(r"^.{10,30}$")
-        is_valid_description = description_pattern.fullmatch(project_description)
-        if not is_valid_description:
-            raise EnterpriseManagementException("Invalid description format")
+        self.validate_project_description(project_description)
 
         # Validate department
         department_pattern = re.compile(r"(HR|FINANCE|LEGAL|LOGISTICS)")
