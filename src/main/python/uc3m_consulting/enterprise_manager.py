@@ -87,38 +87,43 @@ class EnterpriseManager:
                          department: str,
                          date: str,
                          budget: str):
-        """registers a new project"""
+        """Registers a new project"""
         self.validate_cif(company_cif)
-        mr = re.compile(r"^[a-zA-Z0-9]{5,10}")
-        res = mr.fullmatch(project_acronym)
-        if not res:
+
+        # Validate acronym
+        acronym_pattern = re.compile(r"^[a-zA-Z0-9]{5,10}")
+        is_valid_acronym = acronym_pattern.fullmatch(project_acronym)
+        if not is_valid_acronym:
             raise EnterpriseManagementException("Invalid acronym")
-        md = re.compile(r"^.{10,30}$")
-        res = md.fullmatch(project_description)
-        if not res:
+
+        # Validate description
+        description_pattern = re.compile(r"^.{10,30}$")
+        is_valid_description = description_pattern.fullmatch(project_description)
+        if not is_valid_description:
             raise EnterpriseManagementException("Invalid description format")
 
-        mr = re.compile(r"(HR|FINANCE|LEGAL|LOGISTICS)")
-        res = mr.fullmatch(department)
-        if not res:
+        # Validate department
+        department_pattern = re.compile(r"(HR|FINANCE|LEGAL|LOGISTICS)")
+        is_valid_department = department_pattern.fullmatch(department)
+        if not is_valid_department:
             raise EnterpriseManagementException("Invalid department")
 
         self.validate_starting_date(date)
 
+        # Validate budget
         try:
-            f_bdgt  = float(budget)
+            parsed_budget = float(budget)
         except ValueError as exc:
             raise EnterpriseManagementException("Invalid budget amount") from exc
 
-        n_str = str(f_bdgt)
-        if '.' in n_str:
-            decimales = len(n_str.split('.')[1])
-            if decimales > 2:
+        budget_string = str(parsed_budget)
+        if '.' in budget_string:
+            decimal_places = len(budget_string.split('.')[1])
+            if decimal_places > 2:
                 raise EnterpriseManagementException("Invalid budget amount")
 
-        if f_bdgt < 50000 or f_bdgt > 1000000:
+        if parsed_budget < 50000 or parsed_budget > 1000000:
             raise EnterpriseManagementException("Invalid budget amount")
-
 
         new_project = EnterpriseProject(company_cif=company_cif,
                                         project_acronym=project_acronym,
@@ -127,6 +132,7 @@ class EnterpriseManager:
                                         starting_date=date,
                                         project_budget=budget)
 
+        # Storage logic
         try:
             with open(PROJECTS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
                 projects_list = json.load(file)
@@ -148,6 +154,7 @@ class EnterpriseManager:
             raise EnterpriseManagementException("Wrong file  or file path") from ex
         except json.JSONDecodeError as ex:
             raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+
         return new_project.project_id
 
 
