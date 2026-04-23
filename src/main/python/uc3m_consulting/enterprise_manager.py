@@ -17,6 +17,28 @@ class EnterpriseManager:
         pass
 
     @staticmethod
+    def read_json_file(file_path: str):
+        # reads a JSON file and returns its content as a list
+        try:
+            with open(file_path, "r", encoding="utf-8", newline="") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return []
+        except json.JSONDecodeError as ex:
+            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+
+    @staticmethod
+    def write_json_file(file_path: str, data: list):
+        # writes a list of data to a json file
+        try:
+            with open(file_path, "w", encoding="utf-8", newline="") as file:
+                json.dump(data, file, indent=2)
+        except FileNotFoundError as ex:
+            raise EnterpriseManagementException("Wrong file  or file path") from ex
+        except json.JSONDecodeError as ex:
+            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+
+    @staticmethod
     def calculate_control_digit(numbers: str):
         """ Implementation for calculating control digit"""
 
@@ -145,13 +167,7 @@ class EnterpriseManager:
                                         project_budget=budget)
 
         # Storage logic
-        try:
-            with open(PROJECTS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
-                projects_list = json.load(file)
-        except FileNotFoundError:
-            projects_list = []
-        except json.JSONDecodeError as ex:
-            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+        projects_list = self.read_json_file(PROJECTS_STORE_FILE)
 
         for project_item in projects_list:
             if project_item == new_project.to_json():
@@ -159,13 +175,7 @@ class EnterpriseManager:
 
         projects_list.append(new_project.to_json())
 
-        try:
-            with open(PROJECTS_STORE_FILE, "w", encoding="utf-8", newline="") as file:
-                json.dump(projects_list, file, indent=2)
-        except FileNotFoundError as ex:
-            raise EnterpriseManagementException("Wrong file  or file path") from ex
-        except json.JSONDecodeError as ex:
-            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+        self.write_json_file(PROJECTS_STORE_FILE, projects_list)
 
         return new_project.project_id
 
