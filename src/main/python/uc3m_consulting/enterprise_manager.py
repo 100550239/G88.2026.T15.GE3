@@ -129,21 +129,21 @@ class EnterpriseManager:
 
         try:
             with open(PROJECTS_STORE_FILE, "r", encoding="utf-8", newline="") as file:
-                t_l = json.load(file)
+                projects_list = json.load(file)
         except FileNotFoundError:
-            t_l = []
+            projects_list = []
         except json.JSONDecodeError as ex:
             raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
 
-        for t_i in t_l:
-            if t_i == new_project.to_json():
+        for project_item in projects_list:
+            if project_item == new_project.to_json():
                 raise EnterpriseManagementException("Duplicated project in projects list")
 
-        t_l.append(new_project.to_json())
+        projects_list.append(new_project.to_json())
 
         try:
             with open(PROJECTS_STORE_FILE, "w", encoding="utf-8", newline="") as file:
-                json.dump(t_l, file, indent=2)
+                json.dump(projects_list, file, indent=2)
         except FileNotFoundError as ex:
             raise EnterpriseManagementException("Wrong file  or file path") from ex
         except json.JSONDecodeError as ex:
