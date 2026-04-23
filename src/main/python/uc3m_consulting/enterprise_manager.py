@@ -11,14 +11,11 @@ from uc3m_consulting.enterprise_manager_config import (PROJECTS_STORE_FILE,
                                                        TEST_NUMDOCS_STORE_FILE)
 from uc3m_consulting.project_document import ProjectDocument
 
-class EnterpriseManager:
-    """Class for providing the methods for managing the orders"""
-    def __init__(self):
-        pass
+class JsonStore:
 
     @staticmethod
     def read_json_file(file_path: str):
-        # reads a JSON file and returns its content as a list
+        #Reads a JSON file and returns its content as a list
         try:
             with open(file_path, "r", encoding="utf-8", newline="") as file:
                 return json.load(file)
@@ -37,6 +34,11 @@ class EnterpriseManager:
             raise EnterpriseManagementException("Wrong file  or file path") from ex
         except json.JSONDecodeError as ex:
             raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
+
+class EnterpriseManager:
+    """Class for providing the methods for managing the orders"""
+    def __init__(self):
+        pass
 
     @staticmethod
     def calculate_control_digit(numbers: str):
@@ -193,7 +195,7 @@ class EnterpriseManager:
                                         project_budget=budget)
 
         # Storage logic
-        projects_list = self.read_json_file(PROJECTS_STORE_FILE)
+        projects_list = JsonStore.read_json_file(PROJECTS_STORE_FILE)
 
         for project_item in projects_list:
             if project_item == new_project.to_json():
@@ -201,7 +203,7 @@ class EnterpriseManager:
 
         projects_list.append(new_project.to_json())
 
-        self.write_json_file(PROJECTS_STORE_FILE, projects_list)
+        JsonStore.write_json_file(PROJECTS_STORE_FILE, projects_list)
 
         return new_project.project_id
 
@@ -234,7 +236,7 @@ class EnterpriseManager:
             raise EnterpriseManagementException("Invalid date format") from ex
 
         # open documents
-        documents_list = self.read_json_file(TEST_DOCUMENTS_STORE_FILE)
+        documents_list = JsonStore.read_json_file(TEST_DOCUMENTS_STORE_FILE)
 
         documents_found = 0
 
@@ -267,8 +269,8 @@ class EnterpriseManager:
                         "Numfiles": documents_found
                             }
 
-        reports_list = self.read_json_file(TEST_NUMDOCS_STORE_FILE)
+        reports_list = JsonStore.read_json_file(TEST_NUMDOCS_STORE_FILE)
         reports_list.append(report_entry)
-        self.write_json_file(TEST_NUMDOCS_STORE_FILE, reports_list)
+        JsonStore.write_json_file(TEST_NUMDOCS_STORE_FILE, reports_list)
 
         return documents_found
