@@ -19,6 +19,56 @@ class EnterpriseManager:
         pass
 
     @staticmethod
+    def _validate_date_format(date_str: str):
+        # it validates the date format for finding documents
+        date_pattern = re.compile(r"^(([0-2]\d|3[0-1])\/(0\d|1[0-2])\/\d\d\d\d)$")
+        is_date_valid = date_pattern.fullmatch(date_str)
+        if not is_date_valid:
+            raise EnterpriseManagementException("Invalid date format")
+
+        try:
+            datetime.strptime(date_str, "%d/%m/%Y").date()
+        except ValueError as ex:
+            raise EnterpriseManagementException("Invalid date format") from ex
+
+    @staticmethod
+    def _count_valid_documents(documents_list: list, date_str: str) -> int:
+        # it counts the valid documents for a specific date checking signatures
+        documents_found = 0
+        for document_record in documents_list:
+            timestamp_value = document_record["register_date"]
+            doc_date_str = datetime.fromtimestamp(timestamp_value).strftime("%d/%m/%Y")
+
+            if doc_date_str == date_str:
+                document_date_object = datetime.fromtimestamp(timestamp_value, tz=timezone.utc)
+                with freeze_time(document_date_object):
+                    project_document = ProjectDocument(document_record["project_id"],
+                                                       document_record["file_name"])
+                    if project_document.document_signature == document_record["document_signature"]:
+                        documents_found += 1
+                    else:
+                        raise EnterpriseManagementException("Inconsistent document signature")
+
+        if documents_found == 0:
+            raise EnterpriseManagementException("No documents found")
+
+        return documents_found
+
+    @staticmethod
+    def _save_search_report(date_str: str, documents_found: int):
+        # it saves the search report to the JSON store
+        current_timestamp = datetime.now(timezone.utc).timestamp()
+        report_entry = {
+            "Querydate": date_str,
+            "ReportDate": current_timestamp,
+            "Numfiles": documents_found
+        }
+
+        reports_list = JsonStore.read_json_file(TEST_NUMDOCS_STORE_FILE)
+        reports_list.append(report_entry)
+        JsonStore.write_json_file(TEST_NUMDOCS_STORE_FILE, reports_list)
+
+    @staticmethod
     def validate_project_acronym(project_acronym: str):
         """validates the project acronym using regex"""
 
@@ -147,52 +197,12 @@ class EnterpriseManager:
             EnterpriseManagementException: On invalid date, file IO errors,
                 missing data, or cryptographic integrity failure.
         """
-        date_pattern = re.compile(r"^(([0-2]\d|3[0-1])\/(0\d|1[0-2])\/\d\d\d\d)$")
-        is_date_valid = date_pattern.fullmatch(date_str)
-        if not is_date_valid:
-            raise EnterpriseManagementException("Invalid date format")
+        self._validate_date_format(date_str)
 
-        try:
-            my_date = datetime.strptime(date_str, "%d/%m/%Y").date()
-        except ValueError as ex:
-            raise EnterpriseManagementException("Invalid date format") from ex
-
-        # open documents
         documents_list = JsonStore.read_json_file(TEST_DOCUMENTS_STORE_FILE)
 
-        documents_found = 0
+        documents_found = self._count_valid_documents(documents_list, date_str)
 
-        # loop to find
-        for document_record in documents_list:
-            timestamp_value = document_record["register_date"]
-
-            # string conversion for easy match
-            doc_date_str = datetime.fromtimestamp(timestamp_value).strftime("%d/%m/%Y")
-
-            if doc_date_str == date_str:
-                document_date_object = datetime.fromtimestamp(timestamp_value, tz=timezone.utc)
-                with freeze_time(document_date_object):
-                    # check the project id (thanks to freezetime)
-                    # if project_id are different then the data has been
-                    # manipulated
-                    project_document = ProjectDocument(document_record["project_id"], document_record["file_name"])
-                    if project_document.document_signature == document_record["document_signature"]:
-                        documents_found = documents_found + 1
-                    else:
-                        raise EnterpriseManagementException("Inconsistent document signature")
-
-        if documents_found == 0:
-            raise EnterpriseManagementException("No documents found")
-
-        # prepare json text
-        current_timestamp = datetime.now(timezone.utc).timestamp()
-        report_entry = {"Querydate": date_str,
-                        "ReportDate": current_timestamp,
-                        "Numfiles": documents_found
-                            }
-
-        reports_list = JsonStore.read_json_file(TEST_NUMDOCS_STORE_FILE)
-        reports_list.append(report_entry)
-        JsonStore.write_json_file(TEST_NUMDOCS_STORE_FILE, reports_list)
+        self._save_search_report(date_str, documents_found)
 
         return documents_found
