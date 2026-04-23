@@ -1,6 +1,5 @@
-"""Module """
+"""Module for managing the enterprise projects and documents"""
 import re
-import json
 
 from datetime import datetime, timezone
 from freezegun import freeze_time
@@ -10,30 +9,8 @@ from uc3m_consulting.enterprise_manager_config import (PROJECTS_STORE_FILE,
                                                        TEST_DOCUMENTS_STORE_FILE,
                                                        TEST_NUMDOCS_STORE_FILE)
 from uc3m_consulting.project_document import ProjectDocument
+from uc3m_consulting.json_store import JsonStore
 
-class JsonStore:
-
-    @staticmethod
-    def read_json_file(file_path: str):
-        #Reads a JSON file and returns its content as a list
-        try:
-            with open(file_path, "r", encoding="utf-8", newline="") as file:
-                return json.load(file)
-        except FileNotFoundError:
-            return []
-        except json.JSONDecodeError as ex:
-            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
-
-    @staticmethod
-    def write_json_file(file_path: str, data: list):
-        # writes a list of data to a json file
-        try:
-            with open(file_path, "w", encoding="utf-8", newline="") as file:
-                json.dump(data, file, indent=2)
-        except FileNotFoundError as ex:
-            raise EnterpriseManagementException("Wrong file  or file path") from ex
-        except json.JSONDecodeError as ex:
-            raise EnterpriseManagementException("JSON Decode Error - Wrong JSON Format") from ex
 
 class EnterpriseManager:
     """Class for providing the methods for managing the orders"""
@@ -94,7 +71,7 @@ class EnterpriseManager:
         else:
             raise EnterpriseManagementException("CIF type not supported")
         return True
-    
+
 
     @staticmethod
     def validate_project_acronym(project_acronym: str):
@@ -114,8 +91,8 @@ class EnterpriseManager:
         is_valid_description = description_pattern.fullmatch(project_description)
         if not is_valid_description:
             raise EnterpriseManagementException("Invalid description format")
-        
-    
+
+
     @staticmethod
     def validate_department(department: str):
         """validates the department"""
@@ -124,8 +101,8 @@ class EnterpriseManager:
         is_valid_department = department_pattern.fullmatch(department)
         if not is_valid_department:
             raise EnterpriseManagementException("Invalid department")
-        
-    
+
+
     @staticmethod
     def validate_budget(budget: str):
         """validates the budget amount"""
@@ -163,8 +140,8 @@ class EnterpriseManager:
         if my_date.year < 2025 or my_date.year > 2050:
             raise EnterpriseManagementException("Invalid date format")
         return date_str
-    
-    
+
+
     #pylint: disable=too-many-arguments, too-many-positional-arguments
     def register_project(self,
                          company_cif: str,
