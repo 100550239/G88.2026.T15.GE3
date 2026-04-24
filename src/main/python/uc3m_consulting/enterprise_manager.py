@@ -16,8 +16,13 @@ from uc3m_consulting.project_json_store import ProjectJsonStore
 class EnterpriseManager:
     """Class for providing the methods for managing the orders"""
 
-    def __init__(self):
-        pass
+    # Singleton pattern implementation
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     @staticmethod
     def _count_valid_documents(documents_list: list, date_str: str) -> int:
@@ -96,3 +101,4 @@ class EnterpriseManager:
         self._save_search_report(date_str, documents_found)
 
         return documents_found
+
