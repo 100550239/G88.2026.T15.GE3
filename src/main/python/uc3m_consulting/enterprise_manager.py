@@ -20,7 +20,8 @@ class EnterpriseManager:
 
     @staticmethod
     def _count_valid_documents(documents_list: list, date_str: str) -> int:
-        # it counts the valid documents for a specific date checking signatures
+        """Counts the valid documents for a specific date checking signatures"""
+
         documents_found = 0
         for document_record in documents_list:
             timestamp_value = document_record["register_date"]
@@ -43,7 +44,7 @@ class EnterpriseManager:
 
     @staticmethod
     def _save_search_report(date_str: str, documents_found: int):
-        # it saves the search report to the JSON store
+        """Saves the search report to the JSON store"""
         current_timestamp = datetime.now(timezone.utc).timestamp()
         report_entry = {
             "Querydate": date_str,
@@ -79,7 +80,7 @@ class EnterpriseManager:
                                         starting_date=date,
                                         project_budget=budget)
 
-        # Storage logic
+
         projects_list = JsonStore.read_json_file(PROJECTS_STORE_FILE)
 
         for project_item in projects_list:
