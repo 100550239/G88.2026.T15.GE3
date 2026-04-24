@@ -10,6 +10,7 @@ from uc3m_consulting.project_document import ProjectDocument
 from uc3m_consulting.json_store import JsonStore
 from uc3m_consulting.validate_cif import ValidateCIF
 from uc3m_consulting.project_validator import ProjectValidator
+from uc3m_consulting.project_json_store import ProjectJsonStore
 
 
 class EnterpriseManager:
@@ -80,15 +81,7 @@ class EnterpriseManager:
                                         starting_date=date,
                                         project_budget=budget)
 
-
-        projects_list = JsonStore.read_json_file(PROJECTS_STORE_FILE)
-
-        for project_item in projects_list:
-            if project_item == new_project.to_json():
-                raise EnterpriseManagementException("Duplicated project in projects list")
-
-        projects_list.append(new_project.to_json())
-        JsonStore.write_json_file(PROJECTS_STORE_FILE, projects_list)
+        ProjectJsonStore.add_project(new_project.to_json())
 
         return new_project.project_id
 
